@@ -6,7 +6,7 @@ This repository has a Mask R-CNN implementation written in Keras.
 
 It contains a Jupyter Notebook for training a model and detecting objects.
 
-Start the environment by `cd`ing into this directory and running
+Start the environment by `cd`ing into the `docker` directory and running
 
     docker-compose up
 
