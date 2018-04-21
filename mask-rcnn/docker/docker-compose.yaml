@@ -1,0 +1,12 @@
+version: '2.3'
+services:
+  keras:
+    runtime: nvidia
+    build:
+      context: .
+      dockerfile: mask_rcnn.dockerfile
+    ports:
+      - "8889:8889"
+    volumes:
+      - ../../data:/home/keras/data
+      - ../:/home/keras/mask-rcnn
