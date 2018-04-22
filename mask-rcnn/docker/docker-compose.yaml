@@ -4,7 +4,7 @@ services:
     runtime: nvidia
     build:
       context: .
-      dockerfile: mask_rcnn.dockerfile
+      dockerfile: keras.dockerfile
     ports:
       - "8889:8889"
     volumes:
