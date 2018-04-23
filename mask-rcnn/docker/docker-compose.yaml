@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: keras.dockerfile
     ports:
+      - "8877:6006"
       - "8889:8889"
     volumes:
       - ../../data:/home/keras/data
