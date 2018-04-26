@@ -57,8 +57,10 @@ RUN conda install -y python=${python_version} && \
       scikit-learn \
       six \
       theano && \
-    git clone git://github.com/keras-team/keras.git /src && pip install -e /src[tests] && \
-    pip install git+git://github.com/keras-team/keras.git && \
+    git clone git://github.com/keras-team/keras.git /src && \ 
+    cd /src && git checkout tags/2.1.6 && \
+    pip install -e /src[tests] && \
+    pip install git+git://github.com/keras-team/keras.git@2.1.6 && \
     conda clean -yt
 
 # Install COCO API
