@@ -28,20 +28,22 @@ def compute_per_class_precision(gt_boxes, gt_class_ids, gt_masks,
         class_pred_scores = pred_scores[class_pred_indexes]
         class_pred_ids = np.full(np.size(class_pred_indexes), class_info["id"])
         
+        
         if np.shape(class_gt_masks)[2] == 0 and np.shape(class_pred_masks)[2] == 0:
-            continue
-        else:
-            if np.shape(class_gt_masks)[2] == 0:
-                class_gt_indexes = (np.array([0]),)
-                class_gt_masks =  np.zeros([np.shape(class_gt_masks)[0], np.shape(class_gt_masks)[1], 1])
-                class_gt_ids = np.full(np.size(class_gt_indexes), class_info["id"])
+            continue   
 
-            if np.shape(class_pred_masks)[2] == 0:
-                class_pred_indexes = (np.array([0]),)
-                class_pred_masks =  np.zeros([np.shape(class_pred_masks)[0], np.shape(class_pred_masks)[1], 1])
-                class_pred_boxes = pred_boxes[class_pred_indexes]
-                class_pred_scores = pred_scores[class_pred_indexes]
-                class_pred_ids = np.full(np.size(class_pred_indexes), class_info["id"])
+        if np.shape(class_gt_masks)[2] == 0:
+            class_gt_indexes = (np.array([0]),)
+            class_gt_boxes = np.array([[1, 1, 1, 1]])
+            class_gt_masks =  np.zeros([np.shape(class_gt_masks)[0], np.shape(class_gt_masks)[1], 1])
+            class_gt_ids = np.full(np.size(class_gt_indexes), class_info["id"])
+
+        if np.shape(class_pred_masks)[2] == 0:
+            class_pred_indexes = (np.array([0]),)
+            class_pred_masks =  np.zeros([np.shape(class_gt_masks)[0], np.shape(class_gt_masks)[1], 1])
+            class_pred_boxes = np.array([[1, 1, 1, 1]])
+            class_pred_scores = np.array([0])
+            class_pred_ids = np.full(np.size(class_pred_indexes), class_info["id"])
  
             AP, precisions, recalls, overlaps =\
                 mrcnn.utils.compute_ap(class_gt_boxes, class_gt_ids, class_gt_masks,
