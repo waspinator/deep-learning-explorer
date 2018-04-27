@@ -28,7 +28,6 @@ def compute_per_class_precision(gt_boxes, gt_class_ids, gt_masks,
         class_pred_scores = pred_scores[class_pred_indexes]
         class_pred_ids = np.full(np.size(class_pred_indexes), class_info["id"])
         
-        
         if np.shape(class_gt_masks)[2] == 0 and np.shape(class_pred_masks)[2] == 0:
             continue   
 
@@ -45,10 +44,10 @@ def compute_per_class_precision(gt_boxes, gt_class_ids, gt_masks,
             class_pred_scores = np.array([0])
             class_pred_ids = np.full(np.size(class_pred_indexes), class_info["id"])
  
-            AP, precisions, recalls, overlaps =\
-                mrcnn.utils.compute_ap(class_gt_boxes, class_gt_ids, class_gt_masks,
-                                class_pred_boxes, class_pred_ids, class_pred_scores, class_pred_masks,
-                                iou_threshold)
+        AP, precisions, recalls, overlaps =\
+            mrcnn.utils.compute_ap(class_gt_boxes, class_gt_ids, class_gt_masks,
+                            class_pred_boxes, class_pred_ids, class_pred_scores, class_pred_masks,
+                            iou_threshold)
         
         class_precisions[class_info["name"]] = {
             "average_precision": AP,
