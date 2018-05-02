@@ -12,6 +12,8 @@ Custom data is supported in the COCO format. You can use
 [pycococreator](https://github.com/waspinator/pycococreator) to create your
 own COCO-style data sets.
 
+Learn how to get started here: https://patrickwasp.com/train-a-mask-r-cnn-model-on-your-own-dataset/
+
 ## Currently implemented models
 
 - Mask R-CNN (object detection and segmentation) [[arXiv](https://arxiv.org/abs/1703.06870), [source](https://github.com/matterport/Mask_RCNN)]
