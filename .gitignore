@@ -102,4 +102,9 @@ ENV/
 
 \.vscode/settings\.json
 
-\.DS_Store
+/data/*
+/data/*/
+!/data/shapes.zip
+
+**/.DS_Store
+

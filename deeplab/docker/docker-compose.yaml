@@ -1,0 +1,13 @@
+version: '2.3'
+services:
+  unet:
+    runtime: nvidia
+    build:
+      context: .
+      dockerfile: deeplab.dockerfile
+    ports:
+      - "8889:8889"
+      - "6006:6006"
+    volumes:
+      - ../../data:/home/keras/data
+      - ../:/home/keras/deeplab
