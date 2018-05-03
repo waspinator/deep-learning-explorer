@@ -20,6 +20,10 @@ class Config(object):
     sub-class that inherits from this one and override properties
     that need to be changed.
     """
+
+    INPUT_SHAPE_OUTPUT_FEATURE_RATIO = 16
+    INPUT_SHAPE = (512, 512, 3)
+
     # Name the configurations. For example, 'COCO', 'Experiment 3', ...etc.
     # Useful if your code needs to do things differently depending on which
     # experiment is running.
