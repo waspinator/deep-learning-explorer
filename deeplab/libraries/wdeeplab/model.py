@@ -19,6 +19,8 @@ import keras.engine as KE
 import keras.models as KM
 import keras.utils as KU
 
+from wdeeplab import utils
+
 
 class DeepLabThreePlus():
     """Encapsulates the Deeplab v3+ model functionality.
@@ -184,6 +186,79 @@ class DeepLabThreePlus():
         model = KM.Model(inputs, outputs, name='deeplabv3+')
 
         return model
+
+
+    def detect(self, images, verbose=0):
+        """Runs the detection pipeline.
+
+        images: List of images, potentially of different sizes.
+
+        Returns a list of dicts, one dict per image. The dict contains:
+        class_ids: [N] int class IDs
+        scores: [N] float probability scores for the class IDs
+        masks: [H, W, N] instance binary masks
+        """
+
+        assert len(images) == self.config.BATCH_SIZE, "len(images) must be equal to BATCH_SIZE"
+
+        if verbose:
+            utils.log("Processing {} images".format(len(images)))
+            for image in images:
+                utils.log("image", image)
+
+        # Mold inputs to format expected by the neural network
+        molded_images, image_metas, windows = self.mold_inputs(images)
+
+        # Validate image sizes
+        # All images in a batch MUST be of the same size
+        image_shape = molded_images[0].shape
+        for g in molded_images[1:]:
+            assert g.shape == image_shape,\
+                "After resizing, all images must have the same size. Check IMAGE_RESIZE_MODE and image sizes."
+
+        if verbose:
+            utils.log("molded_images", molded_images)
+            utils.log("image_metas", image_metas)
+
+        # Run semantic segmentation
+        detections = self.keras_model.predict(molded_images, verbose=1)
+
+        return detections
+
+
+    def mold_inputs(self, images):
+        """Takes a list of images and modifies them to the format expected
+        as an input to the neural network.
+        images: List of image matricies [height,width,depth]. Images can have
+            different sizes.
+
+        Returns 3 Numpy matricies:
+        molded_images: [N, h, w, 3]. Images resized and normalized.
+        image_metas: [N, length of meta data]. Details about each image.
+        windows: [N, (y1, x1, y2, x2)]. The portion of the image that has the
+            original image (padding excluded).
+        """
+        molded_images = []
+        image_metas = []
+        windows = []
+        for image in images:
+
+            molded_image, window, scale, padding, crop = utils.preprocess_image(image, self.config)
+
+            # Build image_meta
+            image_meta = utils.compose_image_meta(
+                0, image.shape, molded_image.shape, window, scale,
+                np.zeros([self.config.NUM_CLASSES], dtype=np.int32))
+            # Append
+            molded_images.append(molded_image)
+            windows.append(window)
+            image_metas.append(image_meta)
+        # Pack into arrays
+        molded_images = np.stack(molded_images)
+        image_metas = np.stack(image_metas)
+        windows = np.stack(windows)
+        
+        return molded_images, image_metas, windows
 
 
     def load_weights(self, filepath, by_name=False, exclude=None):

@@ -21,9 +21,6 @@ class Config(object):
     that need to be changed.
     """
 
-    INPUT_SHAPE_OUTPUT_FEATURE_RATIO = 16
-    INPUT_SHAPE = (512, 512, 3)
-
     # Name the configurations. For example, 'COCO', 'Experiment 3', ...etc.
     # Useful if your code needs to do things differently depending on which
     # experiment is running.
@@ -194,6 +191,9 @@ class Config(object):
     # Gradient norm clipping
     GRADIENT_CLIP_NORM = 5.0
 
+    INPUT_SHAPE_OUTPUT_FEATURE_RATIO = 16
+    INPUT_SHAPE = (512, 512, 3)
+
     def __init__(self):
         """Set values of computed attributes."""
         # Effective batch size
@@ -204,6 +204,8 @@ class Config(object):
             self.IMAGE_SHAPE = np.array([self.IMAGE_MIN_DIM, self.IMAGE_MIN_DIM, 3])
         else:
             self.IMAGE_SHAPE = np.array([self.IMAGE_MAX_DIM, self.IMAGE_MAX_DIM, 3])
+
+        self.INPUT_SHAPE = self.IMAGE_SHAPE
 
         # Image meta data length
         # See compose_image_meta() for details
