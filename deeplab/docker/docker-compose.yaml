@@ -1,6 +1,6 @@
 version: '2.3'
 services:
-  unet:
+  deeplab:
     runtime: nvidia
     build:
       context: .
