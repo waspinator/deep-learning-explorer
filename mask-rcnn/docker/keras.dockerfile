@@ -87,6 +87,10 @@ RUN apt-get update && apt-get install -y --allow-downgrades --no-install-recomme
     libcudnn7-dev=7.0.4.31-1+cuda9.0 && \
     rm -rf /var/lib/apt/lists/*
 
+# Install API library and pycococreator
+RUN pip install flask-restplus && \
+    pip install git+git://github.com/waspinator/pycococreator.git@0.1.5
+
 # switch to "keras" user
 USER $NB_USER
 
