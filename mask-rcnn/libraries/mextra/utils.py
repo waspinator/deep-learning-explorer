@@ -4,7 +4,7 @@ import numpy as np
 import mrcnn.utils
 import mrcnn.model as modellib
 import pycocotools
-import pycococreatortools.pycococreatortools
+import pycococreatortools.pycococreatortools as pycococreatortools
 import datetime
 
 def compute_per_class_precision(gt_boxes, gt_class_ids, gt_masks,
@@ -92,8 +92,8 @@ def compute_multiple_per_class_precision(model, inference_config, dataset,
                 
     return class_precisions
 
-def results_to_coco(results, class_names, image_size):
-    """Encodes Mask R-CNN detection results in COCO format
+def result_to_coco(result, class_names, image_size, tolerance=2):
+    """Encodes Mask R-CNN detection result into COCO format
     """
 
     INFO = {
@@ -136,21 +136,30 @@ def results_to_coco(results, class_names, image_size):
         
         category = {
             "id": index,
-            "name": class_name
+            "name": class_name,
+            "supercategory": ""
         }
 
         coco_output["categories"].append(category)
 
-    for index in range(results["masks"].shape[-1]):
-        mask = results["masks"][...,index]
+    for index in range(result["masks"].shape[-1]):
+        mask = result["masks"][...,index]
 
-        annotation = pycococreatortools.pycococreatortools.create_annotation_info(
+        bounding_box = np.array([
+            result['rois'][index][1],
+            result['rois'][index][0],
+            result['rois'][index][3] - result['rois'][index][1],
+            result['rois'][index][2] - result['rois'][index][0]
+        ])
+
+        annotation = pycococreatortools.create_annotation_info(
             annotation_id=index,
             image_id=1,
-            category_info={"id": results["class_ids"][index], "is_crowd": False},
+            category_info={"id": result["class_ids"][index].item(), "is_crowd": False},
             binary_mask=mask,
             image_size=image_size,
-            tolerance=2
+            tolerance=tolerance,
+            bounding_box=bounding_box
             )
         
         if annotation is not None:
