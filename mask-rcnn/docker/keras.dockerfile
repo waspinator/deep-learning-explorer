@@ -89,7 +89,7 @@ RUN apt-get update && apt-get install -y --allow-downgrades --no-install-recomme
 
 # Install API library and pycococreator
 RUN pip install flask-restplus && \
-    pip install git+git://github.com/waspinator/pycococreator.git@0.1.5
+    pip install git+git://github.com/waspinator/pycococreator.git@0.2.0
 
 # switch to "keras" user
 USER $NB_USER
