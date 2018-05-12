@@ -17,10 +17,6 @@ detector = ObjectDetector()
 
 ALLOWED_MIMETYPES = set(['image/png', 'image/jpeg'])
 
-# https://github.com/keras-team/keras/issues/2397
-dummy_input = Image.new('RGB', (256, 256))
-detection = detector.detect(dummy_input)
-
 app = Flask(__name__)
 app.config['SWAGGER_UI_JSONEDITOR'] = True
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024 # 2MB

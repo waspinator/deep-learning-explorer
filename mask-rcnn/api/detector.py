@@ -50,6 +50,10 @@ class ObjectDetector(object):
         self.model_path = self.model.find_last()[1]
         self.model.load_weights(self.model_path, by_name=True)
 
+        # https://github.com/keras-team/keras/issues/2397
+        dummy_input = Image.new('RGB', (256, 256))
+        self.detect(dummy_input)
+
     def detect(self, image, tolerance=2):
         """Detect objects in image
 
