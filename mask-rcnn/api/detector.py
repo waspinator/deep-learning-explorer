@@ -20,11 +20,10 @@ HOME_DIR = '/home/keras'
 DATA_DIR = os.path.join(HOME_DIR, "data/shapes")
 MODEL_DIR = os.path.join(DATA_DIR, "logs")
 CLASS_NAMES = ['BG', 'square', 'circle', 'triangle']
-INPUT_SIZE = (256, 256)
+IMAGE_SIZE = 64
 
-image_size = 64
 rpn_anchor_template = (1, 2, 4, 8, 16) # anchor sizes in pixels
-rpn_anchor_scales = tuple(i * (image_size // 16) for i in rpn_anchor_template)
+rpn_anchor_scales = tuple(i * (IMAGE_SIZE // 16) for i in rpn_anchor_template)
 
 
 class ModelConfig(Config):
@@ -32,8 +31,8 @@ class ModelConfig(Config):
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
     NUM_CLASSES = 1 + 3
-    IMAGE_MAX_DIM = image_size
-    IMAGE_MIN_DIM = image_size
+    IMAGE_MAX_DIM = IMAGE_SIZE
+    IMAGE_MIN_DIM = IMAGE_SIZE
     RPN_ANCHOR_SCALES = rpn_anchor_scales
     
 
@@ -51,7 +50,7 @@ class ObjectDetector(object):
         self.model.load_weights(self.model_path, by_name=True)
 
         # https://github.com/keras-team/keras/issues/2397
-        dummy_input = Image.new('RGB', (256, 256))
+        dummy_input = Image.new('RGB', (IMAGE_SIZE, IMAGE_SIZE))
         self.detect(dummy_input)
 
     def detect(self, image, tolerance=2):
@@ -60,7 +59,7 @@ class ObjectDetector(object):
         inputs: PIL image, polygon fidelity tolerance
         """
         image = image.convert('RGB')
-        image.thumbnail(INPUT_SIZE)
+        image.thumbnail((IMAGE_SIZE, IMAGE_SIZE))
         image = img_to_array(image)
         result = self.model.detect([image])[0]
 
