@@ -62,8 +62,10 @@ class ObjectDetector(object):
         image.thumbnail((IMAGE_SIZE, IMAGE_SIZE))
         image = img_to_array(image)
         result = self.model.detect([image])[0]
+        width = np.shape(image)[1]
+        height = np.shape(image)[0]
 
         coco = extra_utils.result_to_coco(result, CLASS_NAMES,
-                                          np.shape(image)[0:2], tolerance)
+                                          (width, height), tolerance)
 
         return coco
