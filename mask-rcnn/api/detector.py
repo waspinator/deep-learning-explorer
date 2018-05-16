@@ -23,7 +23,7 @@ CLASS_NAMES = ['BG', 'square', 'circle', 'triangle']
 IMAGE_SIZE = 64
 
 rpn_anchor_template = (1, 2, 4, 8, 16) # anchor sizes in pixels
-rpn_anchor_scales = tuple(i * (IMAGE_SIZE // 16) for i in rpn_anchor_template)
+rpn_anchor_scales = tuple(i * (IMAGE_SIZE // 32) for i in rpn_anchor_template)
 
 
 class ModelConfig(Config):
