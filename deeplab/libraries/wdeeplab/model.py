@@ -188,6 +188,61 @@ class DeepLabThreePlus():
         return model
 
 
+    def train(self, train_dataset, val_dataset, learning_rate, epochs, layers,
+              augmentation=None):
+
+        # Pre-defined layer regular expressions
+        layer_regex = {
+            # all layers but the backbone
+            "heads": r"(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            # From a specific Resnet stage and up
+            "3+": r"(res3.*)|(bn3.*)|(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            "4+": r"(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            "5+": r"(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            # All layers
+            "all": ".*",
+        }
+        if layers in layer_regex.keys():
+            layers = layer_regex[layers]
+
+        # Data generators
+        train_generator = utils.data_generator(train_dataset, self.config, shuffle=True,
+                                         augmentation=augmentation,
+                                         batch_size=self.config.BATCH_SIZE)
+        val_generator = utils.data_generator(val_dataset, self.config, shuffle=True,
+                                       batch_size=self.config.BATCH_SIZE)
+
+        # Callbacks
+        callbacks = [
+            keras.callbacks.TensorBoard(log_dir=self.log_dir,
+                                        histogram_freq=0, write_graph=True, write_images=False),
+            keras.callbacks.ModelCheckpoint(self.checkpoint_path,
+                                            verbose=0, save_weights_only=True),
+        ]
+
+        # Train
+        utils.log("\nStarting at epoch {}. LR={}\n".format(self.epoch, learning_rate))
+        utils.log("Checkpoint Path: {}".format(self.checkpoint_path))
+        self.set_trainable(layers)
+        self.compile(learning_rate, self.config.LEARNING_MOMENTUM)
+
+        workers = multiprocessing.cpu_count()
+
+        self.keras_model.fit_generator(
+            train_generator,
+            initial_epoch=self.epoch,
+            epochs=epochs,
+            steps_per_epoch=self.config.STEPS_PER_EPOCH,
+            callbacks=callbacks,
+            validation_data=val_generator,
+            validation_steps=self.config.VALIDATION_STEPS,
+            max_queue_size=100,
+            workers=workers,
+            use_multiprocessing=True,
+        )
+        self.epoch = max(self.epoch, epochs)
+
+
     def detect(self, images, verbose=0):
         """Runs the detection pipeline.
 
@@ -328,7 +383,91 @@ class DeepLabThreePlus():
             "*epoch*", "{epoch:04d}")
 
 
+    def set_trainable(self, layer_regex, keras_model=None, indent=0, verbose=1):
+        """Sets model layers as trainable if their names match
+        the given regular expression.
+        """
+        # Print message on the first call (but not on recursive calls)
+        if verbose > 0 and keras_model is None:
+            utils.log("Selecting layers to train")
 
+        keras_model = keras_model or self.keras_model
+
+        # In multi-GPU training, we wrap the model. Get layers
+        # of the inner model because they have the weights.
+        layers = keras_model.inner_model.layers if hasattr(keras_model, "inner_model")\
+            else keras_model.layers
+
+        for layer in layers:
+            # Is the layer a model?
+            if layer.__class__.__name__ == 'Model':
+                print("In model: ", layer.name)
+                self.set_trainable(
+                    layer_regex, keras_model=layer, indent=indent + 4)
+                continue
+
+            if not layer.weights:
+                continue
+            # Is it trainable?
+            trainable = bool(re.fullmatch(layer_regex, layer.name))
+            # Update layer. If layer is a container, update inner layer.
+            if layer.__class__.__name__ == 'TimeDistributed':
+                layer.layer.trainable = trainable
+            else:
+                layer.trainable = trainable
+            # Print trainble layer names
+            if trainable and verbose > 0:
+                utils.log("{}{:20}   ({})".format(" " * indent, layer.name,
+                                            layer.__class__.__name__))
+
+
+    def compile(self, learning_rate, momentum):
+        """Gets the model ready for training. Adds losses, regularization, and
+        metrics. Then calls the Keras compile() function.
+        """
+        # Optimizer object
+        optimizer = keras.optimizers.SGD(
+            lr=learning_rate, momentum=momentum,
+            clipnorm=self.config.GRADIENT_CLIP_NORM)
+        # Add Losses
+        # First, clear previously set losses to avoid duplication
+        self.keras_model._losses = []
+        self.keras_model._per_input_losses = {}
+        loss_names = [
+            "rpn_class_loss",  "rpn_bbox_loss",
+            "mrcnn_class_loss", "mrcnn_bbox_loss", "mrcnn_mask_loss"]
+        for name in loss_names:
+            layer = self.keras_model.get_layer(name)
+            if layer.output in self.keras_model.losses:
+                continue
+            loss = (
+                tf.reduce_mean(layer.output, keepdims=True)
+                * self.config.LOSS_WEIGHTS.get(name, 1.))
+            self.keras_model.add_loss(loss)
+
+        # Add L2 Regularization
+        # Skip gamma and beta weights of batch normalization layers.
+        reg_losses = [
+            keras.regularizers.l2(self.config.WEIGHT_DECAY)(w) / tf.cast(tf.size(w), tf.float32)
+            for w in self.keras_model.trainable_weights
+            if 'gamma' not in w.name and 'beta' not in w.name]
+        self.keras_model.add_loss(tf.add_n(reg_losses))
+
+        # Compile
+        self.keras_model.compile(
+            optimizer=optimizer,
+            loss=[None] * len(self.keras_model.outputs))
+
+        # Add metrics for losses
+        for name in loss_names:
+            if name in self.keras_model.metrics_names:
+                continue
+            layer = self.keras_model.get_layer(name)
+            self.keras_model.metrics_names.append(name)
+            loss = (
+                tf.reduce_mean(layer.output, keepdims=True)
+                * self.config.LOSS_WEIGHTS.get(name, 1.))
+            self.keras_model.metrics_tensors.append(loss)
 
     def SepConv_BN(self, x, filters, prefix, stride=1, kernel_size=3, rate=1, depth_activation=False, epsilon=1e-3):
         """ SepConv with BN between depthwise & pointwise. Optionally add activation after BN
