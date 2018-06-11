@@ -1,0 +1,7 @@
+version: '2.3'
+
+services:
+  keras:
+    ports:
+      - "5001:5000"
+    command: python3 /home/keras/mask-rcnn/api/api.py
