@@ -81,3 +81,7 @@ def resnet50_imagenet_weights_path(cache_dir='../../data'):
                          cache_dir=cache_dir)
 
     return os.path.join(cache_dir, 'weights', 'resnet50_weights_tf_dim_ordering_tf_kernels.h5')
+
+
+def fcn_resnet50_imagenet_weights_path(cache_dir='../../data'):
+    return os.path.join(cache_dir, 'weights', 'fcn_resnet50_weights_tf_dim_ordering_tf_kernels.h5')
