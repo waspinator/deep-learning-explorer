@@ -17,3 +17,4 @@ Learn how to get started here: https://patrickwasp.com/train-a-mask-r-cnn-model-
 ## Currently implemented models
 
 - Mask R-CNN (object detection and segmentation) [[arXiv](https://arxiv.org/abs/1703.06870), [source](https://github.com/matterport/Mask_RCNN)]
+- FCN (class segmentation) [[arXiv](https://arxiv.org/abs/1605.06211), [source](https://github.com/aurora95/Keras-FCN)]
