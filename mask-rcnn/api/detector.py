@@ -22,7 +22,7 @@ MODEL_DIR = os.path.join(DATA_DIR, "logs")
 CLASS_NAMES = ['BG', 'square', 'circle', 'triangle']
 IMAGE_SIZE = 64
 
-rpn_anchor_template = (1, 2, 4, 8, 16) # anchor sizes in pixels
+rpn_anchor_template = (1, 2, 4, 8, 16)  # anchor sizes in pixels
 rpn_anchor_scales = tuple(i * (IMAGE_SIZE // 32) for i in rpn_anchor_template)
 
 
@@ -34,7 +34,7 @@ class ModelConfig(Config):
     IMAGE_MAX_DIM = IMAGE_SIZE
     IMAGE_MIN_DIM = IMAGE_SIZE
     RPN_ANCHOR_SCALES = rpn_anchor_scales
-    
+
 
 class ObjectDetector(object):
 
@@ -42,9 +42,9 @@ class ObjectDetector(object):
 
         self.inference_config = ModelConfig()
 
-        self.model = modellib.MaskRCNN(mode="inference", 
-                                config=self.inference_config,
-                                model_dir=MODEL_DIR)
+        self.model = modellib.MaskRCNN(mode="inference",
+                                       config=self.inference_config,
+                                       model_dir=MODEL_DIR)
 
         self.model_path = self.model.find_last()[1]
         self.model.load_weights(self.model_path, by_name=True)

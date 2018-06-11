@@ -11,4 +11,4 @@ services:
       - "8889:8889"
     volumes:
       - ../../data:/home/keras/data
-      - ../:/home/keras/mask-rcnn
+      - ../../:/home/keras/explorer
