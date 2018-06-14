@@ -9,6 +9,11 @@ from semantic.blocks import conv_block, identity_block
 
 
 def transfer_FCN_ResNet50(transfered_weights_path):
+
+    if os.path.isfile(transfered_weights_path):
+        print('Already transformed')
+        return
+
     input_shape = (224, 224, 3)
     img_input = KL.Input(shape=input_shape)
     bn_axis = 3
@@ -57,4 +62,4 @@ def transfer_FCN_ResNet50(transfered_weights_path):
         if layer.name in index:
             index[layer.name].set_weights(weights)
     model.save_weights(transfered_weights_path)
-    print('Successfully transformed!')
+    print('Successfully transformed')
