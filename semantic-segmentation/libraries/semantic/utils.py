@@ -43,7 +43,7 @@ def create_learning_rate_schedule(epochs, lr_base, lr_power, mode='power_decay')
                 lr = 0.1
         elif mode is 'step_decay':
             initial_lr = lr_base
-            epochs_drop = int(epochs / 10)
+            epochs_drop = epochs / 10
             lr = initial_lr * lr_power ** int((1+epoch)/epochs_drop)
 
         return lr
