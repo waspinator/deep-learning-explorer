@@ -73,6 +73,7 @@ class CocoDataset(semantic.dataset.Dataset):
 
     def __init__(self):
         self.coco = None
+        self._class_weights = {}
         super().__init__()
 
     def prepare(self, class_map=None):
@@ -80,7 +81,11 @@ class CocoDataset(semantic.dataset.Dataset):
 
         dataset_class_weights = self.calculate_dataset_class_weights()
         for info in self.class_info:
-            info['weight'] = dataset_class_weights[info['id']]
+            self._class_weights[info['id']] = dataset_class_weights[info['id']]
+
+    @property
+    def class_weight(self):
+        return self._class_weights
 
     def load_coco(self, dataset_dir, subset, year=DEFAULT_DATASET_YEAR, class_ids=None,
                   class_map=None):
@@ -259,8 +264,8 @@ class CocoDataset(semantic.dataset.Dataset):
 
         image = Image.fromarray(combined_classes)
 
-        #png_file = tempfile.NamedTemporaryFile('wb')
-        #image.save(png_file, 'PNG')
+        # png_file = tempfile.NamedTemporaryFile('wb')
+        # image.save(png_file, 'PNG')
 
         if as_array:
             return np.asarray(image)
