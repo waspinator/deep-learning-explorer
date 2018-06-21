@@ -5,6 +5,7 @@ import keras
 import keras.layers as KL
 import keras.models as KM
 import keras.regularizers as KR
+import keras.applications as KA
 import semantic.layers as SL
 import semantic.blocks as SB
 
@@ -85,3 +86,15 @@ def resnet50_imagenet_weights_path(cache_dir='../../data'):
 
 def fcn_resnet50_imagenet_weights_path(cache_dir='../../data'):
     return os.path.join(cache_dir, 'weights', 'fcn_resnet50_weights_tf_dim_ordering_tf_kernels.h5')
+
+
+def FCN_VGG16(input_shape, classes):
+    base_vgg16 = KA.vgg16.VGG16(include_top=False, weights=None,
+                                input_tensor=None, input_shape=input_shape, pooling=None)
+
+    x = (base_vgg16.output)
+
+    fcn_vgg16 = KM.Model(inputs=base_vgg16.input,
+                         outputs=x, name='fcn_vgg16')
+
+    return fcn_vgg16
