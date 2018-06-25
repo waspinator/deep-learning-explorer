@@ -58,8 +58,7 @@ def create_learning_rate_schedule(epochs, lr_base, lr_power, mode='power_decay')
 
 def load_weights(layers, filepath, by_name=False, exclude=None):
     """Modified version of the correspoding Keras function with
-    the addition of multi-GPU support and the ability to exclude
-    some layers from loading.
+    support and the ability to exclude some layers from loading.
     exlude: list of layer names to excluce
     """
 

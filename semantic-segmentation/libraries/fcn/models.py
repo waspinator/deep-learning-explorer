@@ -6,8 +6,8 @@ import keras.layers as KL
 import keras.models as KM
 import keras.regularizers as KR
 import keras.applications as KA
-import semantic.layers as SL
-import semantic.blocks as SB
+import fcn2.layers as SL
+import fcn2.blocks as SB
 
 
 def AtrousFCN_Resnet50_16s(input_shape=None, weight_decay=0., batch_momentum=0.9, batch_shape=None, classes=21):
@@ -71,30 +71,3 @@ def AtrousFCN_Resnet50_16s(input_shape=None, weight_decay=0., batch_momentum=0.9
     model = KM.Model(img_input, x, name='AtrousFCN_Resnet50_16s')
 
     return model
-
-
-def resnet50_imagenet_weights_path(cache_dir='../../data'):
-    fname = 'resnet50_weights_tf_dim_ordering_tf_kernels.h5'
-    origin = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels.h5'
-
-    keras.utils.get_file(fname, origin, md5_hash='a7b3fe01876f51b976af0dea6bc144eb',
-                         cache_subdir='weights',
-                         cache_dir=cache_dir)
-
-    return os.path.join(cache_dir, 'weights', 'resnet50_weights_tf_dim_ordering_tf_kernels.h5')
-
-
-def fcn_resnet50_imagenet_weights_path(cache_dir='../../data'):
-    return os.path.join(cache_dir, 'weights', 'fcn_resnet50_weights_tf_dim_ordering_tf_kernels.h5')
-
-
-def FCN_VGG16(input_shape, classes):
-    base_vgg16 = KA.vgg16.VGG16(include_top=False, weights=None,
-                                input_tensor=None, input_shape=input_shape, pooling=None)
-
-    x = (base_vgg16.output)
-
-    fcn_vgg16 = KM.Model(inputs=base_vgg16.input,
-                         outputs=x, name='fcn_vgg16')
-
-    return fcn_vgg16

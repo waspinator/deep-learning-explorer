@@ -3,8 +3,9 @@
     - FCN
         - https://arxiv.org/abs/1605.06211
 
-
 This repository has FCN implementation written in Keras.
+
+    - [keras_fcn](https://github.com/JihongJu/keras-fcn)
 
 It contains Jupyter Notebooks for training the models and detecting classes on custom COCO style data.
 
