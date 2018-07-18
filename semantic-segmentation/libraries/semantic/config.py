@@ -95,6 +95,8 @@ class Config(object):
     #     True: (don't use). Set layer in training mode even when inferencing
     TRAIN_BN = False  # Defaulting to False since batch size is often small
 
+    MAX_QUEUE_SIZE = 100
+
     def __init__(self):
         """Set values of computed attributes."""
         # Effective batch size
