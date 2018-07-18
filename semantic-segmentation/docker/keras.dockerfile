@@ -4,14 +4,14 @@ FROM nvidia/cuda:${cuda_version}-cudnn${cudnn_version}-devel
 
 # Install system packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      bzip2 \
-      g++ \
-      git \
-      graphviz \
-      libgl1-mesa-glx \
-      libhdf5-dev \
-      openmpi-bin \
-      wget && \
+    bzip2 \
+    g++ \
+    git \
+    graphviz \
+    libgl1-mesa-glx \
+    libhdf5-dev \
+    openmpi-bin \
+    wget && \
     rm -rf /var/lib/apt/lists/*
 
 # Install conda
@@ -40,23 +40,23 @@ ARG python_version=3.6
 RUN conda install -y python=${python_version} && \
     pip install --upgrade pip && \
     pip install \
-      sklearn_pandas \
-      tensorflow-gpu && \
+    sklearn_pandas \
+    tensorflow-gpu && \
     pip install https://cntk.ai/PythonWheel/GPU/cntk-2.1-cp36-cp36m-linux_x86_64.whl && \
     conda install \
-      bcolz \
-      h5py \
-      matplotlib \
-      mkl \
-      nose \
-      notebook \
-      Pillow \
-      pandas \
-      pygpu \
-      pyyaml \
-      scikit-learn \
-      six \
-      theano && \
+    bcolz \
+    h5py \
+    matplotlib \
+    mkl \
+    nose \
+    notebook \
+    Pillow \
+    pandas \
+    pygpu \
+    pyyaml \
+    scikit-learn \
+    six \
+    theano && \
     git clone git://github.com/keras-team/keras.git /src && \ 
     cd /src && git checkout tags/2.1.6 && \
     pip install -e /src[tests] && \
@@ -93,6 +93,9 @@ RUN pip install flask-restplus && \
 
 RUN pip install sacred && \
     pip install git+git://github.com/keras-team/keras-contrib.git
+
+# install jupyterlab
+RUN conda install -c conda-forge jupyterlab
 
 # switch to "keras" user
 USER $NB_USER
