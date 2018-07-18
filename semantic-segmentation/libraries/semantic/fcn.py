@@ -20,6 +20,9 @@ import keras.optimizers as KO
 import keras.preprocessing as KP
 import keras.applications as KA
 
+import semantic.utils as sutils
+import semantic.generator as generator
+
 from keras_fcn import FCN as FCN_VGG16
 
 
@@ -47,10 +50,64 @@ class FCN(object):
 
     def train(self, train_dataset, validation_dataset,
               learning_schedule, epochs, layers, augmentation=None):
-        pass
+
+        # set trainable layers
+        layer_regex = {
+            "head": r"(score_feat3)",
+            "all": ".*",
+        }
+        if layers in layer_regex.keys():
+            layers = layer_regex[layers]
+
+        sutils.set_trainable(layers, self.keras_model)
+
+        # create data generators for training and validation datasets
+        data_generator = generator.CocoGenerator()
+
+        train_generator = data_generator.flow_from_dataset(train_dataset)
+        validation_generator = data_generator.flow_from_dataset(
+            validation_dataset)
+
+        # create callbacks
+        callbacks = [
+            keras.callbacks.TensorBoard(log_dir=self.log_dir,
+                                        histogram_freq=0, write_graph=True, write_images=False),
+            keras.callbacks.ModelCheckpoint(self.checkpoint_path,
+                                            verbose=0, save_weights_only=True),
+        ]
+
+        # compile model
+        self.compile(learning_schedule)
+
+        # train model for selected number of epochs
+        self.keras_model.fit_generator(
+            train_generator,
+            initial_epoch=self.epoch,
+            epochs=epochs,
+            steps_per_epoch=self.config.STEPS_PER_EPOCH,
+            callbacks=callbacks,
+            validation_data=validation_generator,
+            validation_steps=self.config.VALIDATION_STEPS,
+            max_queue_size=self.config.MAX_QUEUE_SIZE,
+            workers=multiprocessing.cpu_count(),
+            use_multiprocessing=True,
+        )
+
+        self.epoch = max(self.epoch, epochs)
 
     def predict(self, pil_image):
-        pass
+        pil_image.thumbnail(
+            (self.config.IMAGE_MAX_DIM, self.config.IMAGE_MAX_DIM))
+
+        image = KP.image.img_to_array(pil_image)
+        image = sutils.zero_pad_array(
+            image, self.config.IMAGE_MAX_DIM, self.config.IMAGE_MAX_DIM)
+        image = np.expand_dims(image, axis=0)
+        image = KA.imagenet_utils.preprocess_input(image)
+        result = self.keras_model.predict(image, batch_size=1)
+        result = np.argmax(np.squeeze(result), axis=-1).astype(np.uint8)
+
+        return result
 
     def compile(self, schedule):
         self.keras_model.compile(optimizer='rmsprop',
