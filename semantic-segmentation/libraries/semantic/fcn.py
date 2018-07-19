@@ -44,12 +44,14 @@ class FCN(object):
     def build(self, config):
         model = FCN_VGG16(
             input_shape=config.IMAGE_SHAPE,
-            classes=config.NUM_CLASSES)
+            classes=config.NUM_CLASSES,
+            weight_decay=config.WEIGHT_DECAY
+        )
 
         return model
 
     def train(self, train_dataset, validation_dataset,
-              learning_schedule, epochs, layers, augmentation=None):
+              epochs, layers, learning_schedule=None, augmentation=None):
 
         # set trainable layers
         layer_regex = {
@@ -62,7 +64,14 @@ class FCN(object):
         sutils.set_trainable(layers, self.keras_model)
 
         # create data generators for training and validation datasets
-        data_generator = generator.CocoGenerator(data_format='channels_last')
+        data_generator = generator.CocoGenerator(
+            data_format='channels_last',
+            image_resample=True,
+            pixelwise_center=True,
+            pixelwise_std_normalization=True,
+            pixel_mean=self.config.PIXEL_MEAN,
+            pixel_std=self.config.PIXEL_STANDARD_DEVIATION
+        )
 
         train_generator = data_generator.flow_from_dataset(
             train_dataset,
@@ -85,7 +94,7 @@ class FCN(object):
         ]
 
         # compile model
-        self.compile(learning_schedule)
+        self.compile()
 
         # train model for selected number of epochs
         self.keras_model.fit_generator(
@@ -117,8 +126,9 @@ class FCN(object):
 
         return result
 
-    def compile(self, schedule):
-        self.keras_model.compile(optimizer='rmsprop',
+    def compile(self):
+        optimizer = KO.Adam(self.config.LEARNING_RATE)
+        self.keras_model.compile(optimizer=optimizer,
                                  loss='categorical_crossentropy',
                                  metrics=['accuracy'])
 

@@ -79,12 +79,14 @@ class Config(object):
     IMAGE_MIN_SCALE = 0
 
     # Image mean (RGB)
-    MEAN_PIXEL = np.array([123.7, 116.8, 103.9])
+    PIXEL_MEAN = np.array([123.7, 116.8, 103.9])
+    PIXEL_STANDARD_DEVIATION = np.array([70.3, 69.4, 72.6])
 
+    LEARNING_RATE = 0.0001
     LEARNING_MOMENTUM = 0.9
 
     # Weight decay regularization
-    WEIGHT_DECAY = 0.0001
+    WEIGHT_DECAY = 0.003
 
     LR_BASE_BASE = 0.01
     LR_POWER = 0.9

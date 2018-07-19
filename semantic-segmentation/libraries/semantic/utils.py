@@ -323,8 +323,9 @@ def resize_mask(mask, scale, padding, crop=None):
 
 
 def resize_flat_mask(mask, scale, padding, crop=None):
-
-    mask = scipy.ndimage.zoom(mask, zoom=[scale, scale], order=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        mask = scipy.ndimage.zoom(mask, zoom=[scale, scale], order=0)
     if crop is not None:
         y, x, h, w = crop
         mask = mask[y:y + h, x:x + w]

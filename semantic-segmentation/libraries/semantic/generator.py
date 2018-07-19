@@ -11,6 +11,12 @@ import semantic.utils as sutils
 class CocoGenerator(KPI.ImageDataGenerator):
 
     def __init__(self,
+                 image_resample=True,
+                 pixelwise_center=False,
+                 pixel_mean=(0., 0., 0.),
+                 pixelwise_std_normalization=False,
+                 pixel_std=(1., 1., 1.),
+
                  featurewise_center=False,
                  samplewise_center=False,
                  featurewise_std_normalization=False,
@@ -33,7 +39,20 @@ class CocoGenerator(KPI.ImageDataGenerator):
                  data_format=None,
                  validation_split=0.0):
 
+        self.image_resample = image_resample
+        self.pixelwise_center = pixelwise_center
+        self.pixel_mean = np.array(pixel_mean)
+        self.pixelwise_std_normalization = pixelwise_std_normalization
+        self.pixel_std = np.array(pixel_std)
+
         super().__init__()
+
+    def standardize(self, x):
+        if self.pixelwise_center:
+            x -= self.pixel_mean
+        if self.pixelwise_std_normalization:
+            x /= self.pixel_std
+        return super().standardize(x)
 
     def flow_from_dataset(self, dataset,
                           target_size=(256, 256), color_mode='rgb',
@@ -115,6 +134,7 @@ class DatasetIterator(KPI.Iterator):
             max_dim = max(self.target_size)
 
             x = self.dataset.load_image(j)
+            x = x.astype('float32')
             x, _, scale, padding, crop = sutils.resize_image(
                 x, max_dim=max_dim)
 
