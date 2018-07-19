@@ -1,0 +1,14 @@
+version: '2.3'
+
+services:
+  keras:
+    runtime: nvidia
+    build:
+      context: .
+      dockerfile: keras.dockerfile
+    ports:
+      - "8800:6006"
+      - "8801:8889"
+    volumes:
+      - ../../data:/home/keras/data
+      - ../../:/home/keras/explorer
