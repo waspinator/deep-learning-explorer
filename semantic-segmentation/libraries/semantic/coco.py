@@ -227,6 +227,23 @@ class CocoDataset(semantic.dataset.Dataset):
         m = maskUtils.decode(rle)
         return m
 
+    def load_class_mask(self, image_id, as_array=False):
+        """Load class masks for the given image.
+
+        Returns:
+        masks: A bool array of shape [height, width] with
+            one mask per class. Each class mask is represented 
+            by its class id.
+
+            This probably limits the number of classes to 255?
+
+            Another option is to shape the array as 
+            [height, width, number_of_classes] and
+            return a companian array of
+            class_ids: a 1D array of class IDs of the class masks.
+        """
+        return self.load_pil_mask(image_id, as_array)
+
     def load_pil_mask(self, image_id, as_array=False):
         mask = self.load_mask(image_id)
         class_masks = mask[0]

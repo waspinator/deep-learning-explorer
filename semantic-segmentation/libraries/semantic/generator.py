@@ -1,7 +1,11 @@
 #!/usr/bin/python3
+import numpy as np
 
 import keras.backend as KB
 import keras.preprocessing.image as KPI
+import keras.utils as KU
+
+import semantic.utils as sutils
 
 
 class CocoGenerator(KPI.ImageDataGenerator):
@@ -54,7 +58,7 @@ class DatasetIterator(KPI.Iterator):
                  batch_size=32, shuffle=True, seed=None,
                  interpolation='nearest'):
 
-        self.samples = 0
+        self.samples = len(dataset.image_ids)
         self.dataset = dataset
         self.image_data_generator = image_data_generator
         self.target_size = tuple(target_size)
@@ -89,7 +93,40 @@ class DatasetIterator(KPI.Iterator):
         self.class_mode = class_mode
         self.interpolation = interpolation
 
+        label_shape = list(self.image_shape)
+        label_shape[self.image_data_generator.channel_axis - 1] = self.classes
+        self.label_shape = tuple(label_shape)
+
         super().__init__(self.samples, batch_size, shuffle, seed)
 
     def _get_batches_of_transformed_samples(self, index_array):
-        pass
+
+        batch_x = np.zeros(
+            (len(index_array),) + self.image_shape,
+            dtype=KB.floatx())
+
+        batch_y = np.zeros(
+            (len(index_array),) + self.label_shape,
+            dtype=np.int8)
+
+        # build batch of image data
+        for i, j in enumerate(index_array):
+
+            max_dim = max(self.target_size)
+
+            x = self.dataset.load_image(j)
+            x, _, scale, padding, crop = sutils.resize_image(
+                x, max_dim=max_dim)
+
+            #params = self.image_data_generator.get_random_transform(x.shape)
+            #x = self.image_data_generator.apply_transform(x, params)
+            x = self.image_data_generator.standardize(x)
+            batch_x[i] = x
+
+            y = self.dataset.load_class_mask(j)
+            y = sutils.resize_flat_mask(y, scale, padding, crop)
+            y = KU.np_utils.to_categorical(
+                y, self.classes).reshape(self.label_shape)
+            batch_y[i] = y
+
+        return batch_x, batch_y

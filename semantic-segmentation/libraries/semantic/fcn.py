@@ -62,11 +62,19 @@ class FCN(object):
         sutils.set_trainable(layers, self.keras_model)
 
         # create data generators for training and validation datasets
-        data_generator = generator.CocoGenerator()
+        data_generator = generator.CocoGenerator(data_format='channels_last')
 
-        train_generator = data_generator.flow_from_dataset(train_dataset)
+        train_generator = data_generator.flow_from_dataset(
+            train_dataset,
+            batch_size=self.config.BATCH_SIZE,
+            classes=self.config.NUM_CLASSES
+        )
+
         validation_generator = data_generator.flow_from_dataset(
-            validation_dataset)
+            validation_dataset,
+            batch_size=self.config.BATCH_SIZE,
+            classes=self.config.NUM_CLASSES
+        )
 
         # create callbacks
         callbacks = [
@@ -90,7 +98,7 @@ class FCN(object):
             validation_steps=self.config.VALIDATION_STEPS,
             max_queue_size=self.config.MAX_QUEUE_SIZE,
             workers=multiprocessing.cpu_count(),
-            use_multiprocessing=True,
+            use_multiprocessing=False,
         )
 
         self.epoch = max(self.epoch, epochs)
