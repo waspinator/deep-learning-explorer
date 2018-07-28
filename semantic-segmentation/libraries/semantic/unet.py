@@ -61,7 +61,6 @@ class Unet(object):
         optimizer = keras.optimizers.SGD(lr=learning_rate, momentum=momentum)
         loss = keras_contrib.losses.jaccard_distance
         metrics = [keras.metrics.categorical_accuracy]
-        # TODO: report accuracy for paper using http://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
 
         self.keras_model.compile(optimizer, loss, metrics)
 
