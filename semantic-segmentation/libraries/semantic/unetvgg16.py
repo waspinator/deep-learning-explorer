@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import os
 import sys
 import random
@@ -9,7 +8,6 @@ import multiprocessing
 
 import numpy as np
 import keras
-import keras_contrib
 
 import semantic.config
 import semantic.utils
@@ -53,19 +51,18 @@ class Unet(object):
         self.keras_model = self.build(config=config)
 
     def build(self, config):
-        model = unet.models.unet(config.IMAGE_SHAPE, config.CLASSES)
+        model = unet.models.unet_vgg16(config.IMAGE_SHAPE, config.CLASSES)
         return model
 
     def compile(self, learning_rate=0.01, momentum=0.99):
 
         optimizer = keras.optimizers.SGD(lr=learning_rate, momentum=momentum)
-        loss = keras_contrib.losses.jaccard_distance
+        loss = keras.losses.categorical_crossentropy
         metrics = [keras.metrics.categorical_accuracy]
-        # TODO: report accuracy for paper using http://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
 
         self.keras_model.compile(optimizer, loss, metrics)
 
-    def train(self, dataset_train, dataset_validate,
+    def train(self, train_dataset, validation_dataset,
               epochs, layers, learning_rate, augmentation=None):
 
         # set trainable layers
@@ -80,17 +77,20 @@ class Unet(object):
         semantic.utils.set_trainable(layers, self.keras_model)
 
         # create data generators for training and validation datasets
-        data_generator = semantic.generator.CocoGenerator()
+        data_generator = semantic.generator.CocoGenerator(
+            pixel_mean=(123.68, 116.779, 103.939),
+            pixelwise_center=True
+        )
 
-        generator_train = data_generator.flow_from_dataset(
-            dataset_train,
+        train_generator = data_generator.flow_from_dataset(
+            train_dataset,
             target_size=(self.config.IMAGE_HEIGHT, self.config.IMAGE_WIDTH),
             batch_size=self.config.BATCH_SIZE,
             classes=self.config.CLASSES
         )
 
-        generator_validate = data_generator.flow_from_dataset(
-            dataset_validate,
+        validation_generator = data_generator.flow_from_dataset(
+            validation_dataset,
             target_size=(self.config.IMAGE_HEIGHT, self.config.IMAGE_WIDTH),
             batch_size=self.config.BATCH_SIZE,
             classes=self.config.CLASSES
@@ -109,12 +109,12 @@ class Unet(object):
 
         # train model for selected number of epochs
         self.keras_model.fit_generator(
-            generator_train,
+            train_generator,
             initial_epoch=self.epoch,
             epochs=epochs,
             steps_per_epoch=self.config.STEPS_PER_EPOCH,
             callbacks=callbacks,
-            validation_data=generator_validate,
+            validation_data=validation_generator,
             validation_steps=self.config.VALIDATION_STEPS,
             workers=multiprocessing.cpu_count(),
             use_multiprocessing=False,

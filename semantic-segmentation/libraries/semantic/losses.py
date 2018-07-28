@@ -1,34 +1,22 @@
 #!/usr/bin/python3
-
-import keras.backend as KB
-import tensorflow as tf
+import keras.backend as K
 
 
-def softmax_sparse_crossentropy_ignoring_last_label(y_true, y_pred):
-    '''
-    Softmax cross-entropy loss function for pascal voc segmentation
-    and models which do not perform softmax.
-    tensorlow only
-    '''
-    y_pred = KB.reshape(y_pred, (-1, KB.int_shape(y_pred)[-1]))
-    log_softmax = tf.nn.log_softmax(y_pred)
-
-    y_true = KB.one_hot(tf.to_int32(KB.flatten(y_true)),
-                        KB.int_shape(y_pred)[-1]+1)
-    unpacked = tf.unstack(y_true, axis=-1)
-    y_true = tf.stack(unpacked[:-1], axis=-1)
-
-    cross_entropy = -KB.sum(y_true * log_softmax, axis=1)
-    cross_entropy_mean = KB.mean(cross_entropy)
-
-    return cross_entropy_mean
+def dice_coef(y_true, y_pred, smooth=1):
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.dot(y_true, K.transpose(y_pred))
+    union = K.dot(y_true, K.transpose(y_true))+K.dot(y_pred, K.transpose(y_pred))
+    return (2. * intersection + smooth) / (union + smooth)
 
 
-def binary_crossentropy_with_logits(ground_truth, predictions):
-    '''
-    Softmax cross-entropy loss function for coco segmentation
-    and models which expect but do not apply sigmoid on each entry
-    tensorlow only
-    '''
+def dice_coef_loss(y_true, y_pred):
+    return K.mean(1-dice_coef(y_true, y_pred), axis=-1)
 
-    return KB.mean(KB.binary_crossentropy(ground_truth, predictions, from_logits=True), axis=-1)
+
+def focal_loss(target, output, gamma=2):
+    output /= K.sum(output, axis=-1, keepdims=True)
+    eps = K.epsilon()
+    output = K.clip(output, eps, 1. - eps)
+    return -K.sum(K.pow(1. - output, gamma) * target * K.log(output),
+                  axis=-1)
