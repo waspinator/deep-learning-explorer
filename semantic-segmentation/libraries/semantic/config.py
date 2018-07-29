@@ -36,6 +36,9 @@ class Config(object):
     STEPS_PER_EPOCH = 0
     VALIDATION_STEPS = 0
 
+    PIXEL_STANDARD_DEVIATION = (1., 1., 1.)
+    PIXEL_MEAN = (0., 0., 0.)
+
     def __init__(self):
         """Set values of computed attributes."""
 

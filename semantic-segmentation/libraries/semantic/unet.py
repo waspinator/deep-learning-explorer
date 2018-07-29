@@ -14,6 +14,7 @@ import keras_contrib
 import semantic.config
 import semantic.utils
 import semantic.generator
+import semantic.losses
 
 sys.path.insert(0, '../libraries')
 import unet.models
@@ -56,10 +57,13 @@ class Unet(object):
         model = unet.models.unet(config.IMAGE_SHAPE, config.CLASSES)
         return model
 
-    def compile(self, learning_rate=0.01, momentum=0.99):
+    def compile(self, learning_rate=0.001, momentum=0.9):
 
-        optimizer = keras.optimizers.SGD(lr=learning_rate, momentum=momentum)
-        loss = keras_contrib.losses.jaccard_distance
+        #optimizer = keras.optimizers.SGD(lr=learning_rate, momentum=momentum)
+        optimizer = keras.optimizers.Adam(1e-5)
+        #loss = keras_contrib.losses.jaccard_distance
+        #loss = keras.losses.categorical_crossentropy
+        loss = semantic.losses.dice_coef_loss
         metrics = [keras.metrics.categorical_accuracy]
 
         self.keras_model.compile(optimizer, loss, metrics)
@@ -79,7 +83,12 @@ class Unet(object):
         semantic.utils.set_trainable(layers, self.keras_model)
 
         # create data generators for training and validation datasets
-        data_generator = semantic.generator.CocoGenerator()
+        data_generator = semantic.generator.CocoGenerator(
+                pixel_mean=self.config.PIXEL_MEAN,
+                pixel_std=self.config.PIXEL_STANDARD_DEVIATION,
+                pixelwise_center=True,
+                pixelwise_std_normalization=True
+        )
 
         generator_train = data_generator.flow_from_dataset(
             dataset_train,
@@ -126,6 +135,13 @@ class Unet(object):
             (self.config.IMAGE_WIDTH, self.config.IMAGE_HEIGHT))
 
         image = keras.preprocessing.image.img_to_array(pil_image)
+
+        pixel_mean = np.array(self.config.PIXEL_MEAN)
+        pixel_std = np.array(self.config.PIXEL_STANDARD_DEVIATION)
+
+        image -= pixel_mean
+        image /= pixel_std
+
         image = semantic.utils.zero_pad_array(
             image, self.config.IMAGE_HEIGHT, self.config.IMAGE_WIDTH)
         image = np.expand_dims(image, axis=0)

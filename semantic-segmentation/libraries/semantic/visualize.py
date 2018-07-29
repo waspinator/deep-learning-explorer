@@ -22,7 +22,7 @@ def display_images(images, titles=None, cols=4, cmap=None, norm=None,
         plt.subplot(rows, cols, i)
         plt.title(title, fontsize=9)
         plt.axis('off')
-        plt.imshow(image.astype(np.float32), cmap=cmap,
+        plt.imshow(image.astype(np.uint8), cmap=cmap,
                    norm=norm, interpolation=interpolation)
         i += 1
     plt.show()
@@ -84,7 +84,7 @@ def display_generator_output(generator, image_indexes, class_names=None):
 
     data, labels = generator._get_batches_of_transformed_samples(image_indexes)
 
-    image = data[0, :].astype(np.float32)
+    image = data[0, :]
     masks = labels[0, :]
     background_mask = masks[:, :, 0]
     square_mask = masks[:, :, 1]

@@ -14,7 +14,7 @@ class CocoGenerator(KPI.ImageDataGenerator):
                  image_resample=True,
                  pixelwise_center=False,
                  pixel_mean=(0., 0., 0.),
-                 pixelwise_standard_normalization=False,
+                 pixelwise_std_normalization=False,
                  pixel_std=(1., 1., 1.),
 
                  featurewise_center=False,
@@ -42,7 +42,7 @@ class CocoGenerator(KPI.ImageDataGenerator):
         self.image_resample = image_resample
         self.pixelwise_center = pixelwise_center
         self.pixel_mean = np.array(pixel_mean)
-        self.pixelwise_standard_normalization = pixelwise_standard_normalization
+        self.pixelwise_std_normalization = pixelwise_std_normalization
         self.pixel_std = np.array(pixel_std)
 
         super().__init__()
@@ -50,7 +50,7 @@ class CocoGenerator(KPI.ImageDataGenerator):
     def standardize(self, x):
         if self.pixelwise_center:
             x -= self.pixel_mean
-        if self.pixelwise_standard_normalization:
+        if self.pixelwise_std_normalization:
             x /= self.pixel_std
         return super().standardize(x)
 

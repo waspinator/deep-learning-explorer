@@ -74,6 +74,8 @@ class CocoDataset(semantic.dataset.Dataset):
     def __init__(self):
         self.coco = None
         self._class_weights = {}
+        self._mean = ()
+        self._standard_deviation = ()
         super().__init__()
 
     def prepare(self, class_map=None):
@@ -336,3 +338,30 @@ class CocoDataset(semantic.dataset.Dataset):
         class_weights[background_id] = 1 - total_object_weight
 
         return class_weights
+
+    def calculate_dataset_standard_deviation(self):
+        image_stds = []
+
+        for image_id in self.image_ids:
+            image_std = self.calculate_image_standard_deviation(image_id)
+            image_stds.append(image_std)
+
+        stds = np.vstack(image_stds)
+        return np.mean(stds, axis=(0))
+        
+    def calculate_dataset_mean(self):
+        image_means = []
+        for image_id in self.image_ids:
+            image_mean = self.calculate_image_mean(image_id)
+            image_means.append(image_mean)
+
+        means = np.vstack(image_means)
+        return np.mean(means, axis=(0))
+
+    def calculate_image_standard_deviation(self, image_id):
+        image = self.load_image(image_id)
+        return np.std(image, axis=(0, 1))
+
+    def calculate_image_mean(self, image_id):
+        image = self.load_image(image_id)
+        return np.mean(image, axis=(0, 1))
